@@ -1,0 +1,21 @@
+/* 전체 구조 */
+MyApp
+├─ Application
+│  ├─ ap.c
+│  ├─ ap.h
+│
+├─ BSP
+│  ├─ bsp.c
+│  └─ bsp.h
+│
+├─ Hardware
+│  ├─ hw.c
+│  ├─ hw.h
+│
+├─ Driver
+│  ├─ motor.c
+│  ├─ motor.h
+│
+└─ Common
+   ├─ def.h
+   └─ hw_def.h
