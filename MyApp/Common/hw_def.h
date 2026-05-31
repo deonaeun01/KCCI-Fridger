@@ -15,5 +15,6 @@
 #include "gas.h"
 #include "bluetooth.h"
 #include "lcd.h"
+#include "hall.h"
 
 #endif //__MAP_COMMON__HW_DEF_H__
