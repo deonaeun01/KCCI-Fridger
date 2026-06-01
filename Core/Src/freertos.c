@@ -58,7 +58,7 @@ const osThreadAttr_t defaultTask_attributes = {
 osThreadId_t MySensorTaskHandle;
 const osThreadAttr_t MySensorTask_attributes = {
   .name = "MySensorTask",
-  .stack_size = 512 * 4,
+  .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for MyCommTask */

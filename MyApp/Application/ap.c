@@ -1,5 +1,6 @@
 #include "ap.h"
-
+#include "rtc.h"
+extern UART_HandleTypeDef huart2;
 // 태스크 간 자원 공유를 위한 volatile 전역 변수
 volatile bool g_is_door_open = false; 
 volatile uint32_t g_current_gas_mV = 0;
@@ -11,7 +12,47 @@ void StartDefaultTask(void *argument)
     gasInit();
     btInit();
     hallInit();
+    rtcInit();
     
+    HAL_UART_Transmit(&huart2,
+                  (uint8_t*)"A\r\n",
+                  3,
+                  100);
+
+    rtcInit();
+
+    HAL_UART_Transmit(&huart2,
+                  (uint8_t*)"B\r\n",
+                  3,
+                  100);
+
+    RTC_TimeDef initTime =
+    {
+        .year = 26,
+        .month = 6,
+        .date = 1,
+        .hour = 12,
+        .min = 0,
+        .sec = 0
+    };
+
+    rtcSetTime(&initTime);
+
+    HAL_UART_Transmit(&huart2,
+                  (uint8_t*)"C\r\n",
+                  3,
+                  100);
+
+    RTC_TimeDef test;
+
+    rtcGetTime(&test);
+
+    HAL_UART_Transmit(&huart2,
+                  (uint8_t*)"D\r\n",
+                  3,
+                  100);
+    
+
     // [중요] 보드 전원 인가 후 LCD 칩셋이 부팅할 시간 0.5초 부여 (쓰레기값 방지)
     osDelay(500); 
     if(LCD_init(&hi2c1)) {
@@ -21,6 +62,27 @@ void StartDefaultTask(void *argument)
 
     for(;;)
     {
+        RTC_TimeDef t;
+
+        rtcGetTime(&t);
+
+        char msg[64];
+
+        int len = snprintf(msg,
+                        sizeof(msg),
+                        "20%02d-%02d-%02d %02d:%02d:%02d\r\n",
+                        t.year,
+                        t.month,
+                        t.date,
+                        t.hour,
+                        t.min,
+                        t.sec);
+
+        HAL_UART_Transmit(&huart2,
+                        (uint8_t *)msg,
+                        len,
+                        100);
+
         // sensorTask가 업데이트해둔 전역 변수를 보고 화면만 그립니다.
         if (g_is_door_open)
         {
