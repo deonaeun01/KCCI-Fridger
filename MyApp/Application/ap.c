@@ -13,18 +13,19 @@ void StartDefaultTask(void *argument)
     btInit();
     hallInit();
     rtcInit();
+    ackInit();
 
-    RTC_TimeDef initTime =
-    {
-        .year = 26,
-        .month = 6,
-        .date = 2,
-        .hour = 13,
-        .min = 0,
-        .sec = 0
-    };
+    // RTC_TimeDef initTime =
+    // {
+    //     .year = 26,
+    //     .month = 6,
+    //     .date = 2,
+    //     .hour = 13,
+    //     .min = 0,
+    //     .sec = 0
+    // };
 
-    rtcSetTime(&initTime);
+    // rtcSetTime(&initTime);
 
     // [중요] 보드 전원 인가 후 LCD 칩셋이 부팅할 시간 0.5초 부여 (쓰레기값 방지)
     osDelay(500); 
@@ -35,19 +36,19 @@ void StartDefaultTask(void *argument)
 
     for(;;)
     {
-        RTC_TimeDef currTime;
-        rtcGetTime(&currTime);
+        // RTC_TimeDef currTime;
+        // rtcGetTime(&currTime);
 
-        char msg[64];
-        int len = snprintf(msg, sizeof(msg),
-                        "20%02d-%02d-%02d %02d:%02d:%02d\r\n",
-                        currTime.year, currTime.month, currTime.date,
-                        currTime.hour, currTime.min, currTime.sec);
+        // char msg[64];
+        // int len = snprintf(msg, sizeof(msg),
+        //                 "20%02d-%02d-%02d %02d:%02d:%02d\r\n",
+        //                 currTime.year, currTime.month, currTime.date,
+        //                 currTime.hour, currTime.min, currTime.sec);
                         
-        HAL_UART_Transmit(&huart2,
-                        (uint8_t *)msg,
-                        len,
-                        100);        
+        // HAL_UART_Transmit(&huart2,
+        //                 (uint8_t *)msg,
+        //                 len,
+        //                 100);        
         // sensorTask가 업데이트해둔 전역 변수를 보고 화면만 그립니다.
         if (g_is_door_open)
         {
@@ -96,9 +97,6 @@ void sensorTask(void *argument)
                 last_door_state = current_state;
                 g_is_door_open = current_state;
 
-                RTC_TimeDef evtTime;
-                rtcGetTime(&evtTime);
-
                 if (g_is_door_open)
                 {
                     btSendMessage("KMS_RAS", "EVENT", "OPEN");
@@ -107,6 +105,17 @@ void sensorTask(void *argument)
                 {
                     btSendMessage("KMS_RAS", "EVENT", "CLOSE");
                     g_lcd_door_closed_timer = 10;
+                }
+
+                RTC_TimeDef evtTime;
+                rtcGetTime(&evtTime);
+
+                if(!ackIsConnected())
+                {
+                    enqueueEvent(
+                        g_is_door_open,
+                        &evtTime
+                    );
                 }
                 
                 // ★ DB 프리징 원천 차단: 이벤트를 보낸 직후 SENSOR 타이머를 0으로 리셋!
@@ -133,7 +142,8 @@ void sensorTask(void *argument)
             snprintf(valStr, sizeof(valStr), "%lu@0.0@0.0", g_current_gas_mV);
             btSendMessage("KMS_RAS", "SENSOR", valStr);
         }
-
+        ackCheckTimeout();
+        ackProcessOfflineQueue();
         osDelay(10); // 10ms 주기로 초고속 반응 대기
     }
 }

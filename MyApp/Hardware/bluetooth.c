@@ -71,6 +71,7 @@ void btProcess(void)
     // 큐에 데이터가 존재하는 동안 계속 dequeue 수행
     while (dequeue(&ch))
     {
+
         // 패킷의 끝을 알리는 문자 도착 시
         if (ch == '\n' || ch == '\r')
         {
@@ -82,20 +83,27 @@ void btProcess(void)
             // --- 문자열 파싱 시작 ---
             int i = 0;
             char *pArray[ARR_CNT] = {0};
-            char *pToken = strtok(lineBuf, "[@]");
+            char *pToken = strtok(lineBuf, "[]@");
             
             while(pToken != NULL)
             {
                 pArray[i] = pToken;
                 if(++i >= ARR_CNT) break;
-                pToken = strtok(NULL, "[@]");
+                pToken = strtok(NULL, "[]@");
+            }
+
+            if(i >= 2)
+            {
+                if(!strcmp(pArray[1],"ACK"))
+                {
+                    ackReceive();
+                    continue;
+                }
             }
 
             if(i >= 3) 
             {
-                // 서버 브로드캐스트 메시지 무시
-                if(!strncmp(pArray[1], " New conn", 9) || !strncmp(pArray[1], " Already log", 12)) continue;
-
+    
                 if(!strcmp(pArray[1], "LED"))
                 {
                     if(!strcmp(pArray[2], "ON"))

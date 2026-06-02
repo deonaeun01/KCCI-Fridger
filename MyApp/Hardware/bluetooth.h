@@ -1,6 +1,7 @@
 #ifndef __HW_BLUETOOTH_H__
 #define __HW_BLUETOOTH_H__
 
+#include "ack.h"
 #include "def.h"
 #include "hw_def.h"
 
