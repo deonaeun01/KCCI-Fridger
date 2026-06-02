@@ -13,45 +13,18 @@ void StartDefaultTask(void *argument)
     btInit();
     hallInit();
     rtcInit();
-    
-    HAL_UART_Transmit(&huart2,
-                  (uint8_t*)"A\r\n",
-                  3,
-                  100);
-
-    rtcInit();
-
-    HAL_UART_Transmit(&huart2,
-                  (uint8_t*)"B\r\n",
-                  3,
-                  100);
 
     RTC_TimeDef initTime =
     {
         .year = 26,
         .month = 6,
-        .date = 1,
-        .hour = 12,
+        .date = 2,
+        .hour = 13,
         .min = 0,
         .sec = 0
     };
 
     rtcSetTime(&initTime);
-
-    HAL_UART_Transmit(&huart2,
-                  (uint8_t*)"C\r\n",
-                  3,
-                  100);
-
-    RTC_TimeDef test;
-
-    rtcGetTime(&test);
-
-    HAL_UART_Transmit(&huart2,
-                  (uint8_t*)"D\r\n",
-                  3,
-                  100);
-    
 
     // [중요] 보드 전원 인가 후 LCD 칩셋이 부팅할 시간 0.5초 부여 (쓰레기값 방지)
     osDelay(500); 
@@ -62,27 +35,19 @@ void StartDefaultTask(void *argument)
 
     for(;;)
     {
-        RTC_TimeDef t;
-
-        rtcGetTime(&t);
+        RTC_TimeDef currTime;
+        rtcGetTime(&currTime);
 
         char msg[64];
-
-        int len = snprintf(msg,
-                        sizeof(msg),
+        int len = snprintf(msg, sizeof(msg),
                         "20%02d-%02d-%02d %02d:%02d:%02d\r\n",
-                        t.year,
-                        t.month,
-                        t.date,
-                        t.hour,
-                        t.min,
-                        t.sec);
-
+                        currTime.year, currTime.month, currTime.date,
+                        currTime.hour, currTime.min, currTime.sec);
+                        
         HAL_UART_Transmit(&huart2,
                         (uint8_t *)msg,
                         len,
-                        100);
-
+                        100);        
         // sensorTask가 업데이트해둔 전역 변수를 보고 화면만 그립니다.
         if (g_is_door_open)
         {
@@ -131,14 +96,17 @@ void sensorTask(void *argument)
                 last_door_state = current_state;
                 g_is_door_open = current_state;
 
-                if (g_is_door_open) 
+                RTC_TimeDef evtTime;
+                rtcGetTime(&evtTime);
+
+                if (g_is_door_open)
                 {
-                    btSendMessage("KMS_RAS", "EVENT", "OPEN"); 
+                    btSendMessage("KMS_RAS", "EVENT", "OPEN");
                 }
-                else 
+                else
                 {
-                    btSendMessage("KMS_RAS", "EVENT", "CLOSE"); 
-                    g_lcd_door_closed_timer = 10; // LCD 태스크에 1초 알림 지시
+                    btSendMessage("KMS_RAS", "EVENT", "CLOSE");
+                    g_lcd_door_closed_timer = 10;
                 }
                 
                 // ★ DB 프리징 원천 차단: 이벤트를 보낸 직후 SENSOR 타이머를 0으로 리셋!

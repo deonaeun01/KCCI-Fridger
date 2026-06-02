@@ -1,11 +1,8 @@
 #include "rtc.h"
 
-// 외부 I2C 핸들 (CubeMX에서 생성됨)
+// 외부 I2C 핸들
 extern I2C_HandleTypeDef hi2c2;
 
-// =========================
-// BCD convert
-// =========================
 static uint8_t dec_to_bcd(uint8_t val)
 {
     return ((val / 10) << 4) | (val % 10);
@@ -16,9 +13,6 @@ static uint8_t bcd_to_dec(uint8_t val)
     return ((val >> 4) * 10) + (val & 0x0F);
 }
 
-// =========================
-// DS1307 register map
-// =========================
 #define REG_SEC   0x00
 #define REG_MIN   0x01
 #define REG_HOUR  0x02
@@ -53,14 +47,11 @@ static HAL_StatusTypeDef read_reg(uint8_t reg, uint8_t *data)
                             100);
 }
 
-// =========================
-// init
-// =========================
 void rtcInit(void)
 {
     uint8_t sec;
 
-    // CH (Clock Halt) bit clear → oscillator start
+    // CH bit clear -> oscillator start
     read_reg(REG_SEC, &sec);
     sec &= 0x7F;
     write_reg(REG_SEC, sec);
@@ -69,9 +60,6 @@ void rtcInit(void)
     write_reg(REG_CTRL, 0x00);
 }
 
-// =========================
-// set time
-// =========================
 void rtcSetTime(RTC_TimeDef *t)
 {
     uint8_t buf[7];
@@ -93,9 +81,6 @@ void rtcSetTime(RTC_TimeDef *t)
                       100);
 }
 
-// =========================
-// get time
-// =========================
 void rtcGetTime(RTC_TimeDef *t)
 {
     uint8_t buf[7];

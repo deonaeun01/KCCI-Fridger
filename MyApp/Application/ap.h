@@ -4,6 +4,7 @@
 #include "def.h"
 #include "hw_def.h"
 
+
 void StartDefaultTask(void *argument);
 void sensorTask(void *argument);
 void commTask(void *argument);
