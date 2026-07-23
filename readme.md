@@ -73,6 +73,13 @@ KCCI-Fridger/
 ├── Middlewares/Third_Party/FreeRTOS/       # FreeRTOS 소스
 ├── MyApp/                                  # 사용자 정의 애플리케이션 로직
 ├── cmake/                                  # CMake 빌드 설정
+├── RaspberryPi/                            # 소켓 통신 코드 (STM32/Arduino ↔ 서버)
+│   ├── iot_server.c                        # 중계 서버 (교육과정 베이스 코드)
+│   ├── iot_client.c                        # TCP 클라이언트 (베이스 코드)
+│   ├── iot_client_bluetooth.c              # 블루투스+TCP 브릿지 (직접 작성)
+│   ├── Makefile
+│   ├── build_bt.sh
+│   └── idpasswd.example.txt
 ├── Fridger.ioc                             # STM32CubeMX 설정 파일
 └── CMakeLists.txt
 ```
